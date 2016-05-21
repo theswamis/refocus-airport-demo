@@ -37,7 +37,7 @@ data.get({
             , name: airport
             , parentAbsolutePath: airportAbsolutePath
         };
-
+	/*
         refocus.post({
             url: 'v1/subjects'
             , body: stateSubject
@@ -52,6 +52,7 @@ data.get({
             url: 'v1/subjects'
             , body: airportSubject
         });
+	*/
 
         //if there is a delay then get the details
         var hasDelay = "true";
