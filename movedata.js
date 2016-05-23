@@ -14,7 +14,7 @@ data.get({
 }).then(function (resp) {
     for (i = 0; i < resp.length; i++) {
         var state = resp[i].STATE.replace(/\s/g, '');
-        var stateAbsolutePath = "Salesforce.Demos";
+        var stateAbsolutePath = "Salesforce.Demos.Airports";
         var stateSubject = {
             isPublished: true
             , name: state
@@ -37,7 +37,7 @@ data.get({
             , name: airport
             , parentAbsolutePath: airportAbsolutePath
         };
-	/*
+	/*	
         refocus.post({
             url: 'v1/subjects'
             , body: stateSubject
@@ -52,7 +52,7 @@ data.get({
             url: 'v1/subjects'
             , body: airportSubject
         });
-	*/
+	*/	
 
         //if there is a delay then get the details
         var hasDelay = "true";
