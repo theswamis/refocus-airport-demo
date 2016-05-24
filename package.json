@@ -4,7 +4,8 @@
   "description": "Pushes data about cities to refocus.",
   "main": "index.js",
   "dependencies": {
-    "promised-rest-client": "^2.0.0"
+    "promised-rest-client": "^2.0.0",
+    "wdwjs": "^3.1.2"
   },
   "devDependencies": {},
   "scripts": {
