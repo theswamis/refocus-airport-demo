@@ -6,6 +6,28 @@ var refocus = require('promised-rest-client')({
     url: 'http://refocus.internal.salesforce.com/'
 });
 
+var iataList = {};
+
+function updateMessage(iata) {
+    data.get({
+        url: 'airport/status/' + iata
+        , qs: {
+            format: 'application/json'
+        }
+    }).then(function (resp) {
+        refocus.post({
+            url: 'v1/samples/upsert'
+            , body: {
+                "name": iataList[resp.IATA].sample
+                , "messageBody": resp.status.reason + " // " + resp.status.type
+            }
+        });
+    }).catch(function (resp) {
+        console.log("Error: " + resp.message);
+    });
+}
+
+
 data.get({
     url: 'airport/list'
     , qs: {
@@ -30,6 +52,7 @@ data.get({
         };
 
         var iata = resp[i].IATA;
+
         var airport = iata;
         var airportAbsolutePath = cityAbsolutePath + "." + city;
         var airportSubject = {
@@ -37,7 +60,8 @@ data.get({
             , name: airport
             , parentAbsolutePath: airportAbsolutePath
         };
-	/*	
+
+        /*	
         refocus.post({
             url: 'v1/subjects'
             , body: stateSubject
@@ -52,7 +76,7 @@ data.get({
             url: 'v1/subjects'
             , body: airportSubject
         });
-	*/	
+	*/
 
         //if there is a delay then get the details
         var hasDelay = "true";
@@ -65,8 +89,9 @@ data.get({
             "name": airportSubject.name + " Delays"
             , "url": resp[i].URI + "?format=application/json"
         }];
+        var sampleName = airportSubjectPath + "|AIRPORTDELAY";
         var sampleUpsertBody = {
-            "name": airportSubjectPath + "|AIRPORTDELAY"
+            "name": sampleName
             , "relatedLinks": links
             , "value": hasDelay
         };
@@ -75,22 +100,16 @@ data.get({
             , body: sampleUpsertBody
         });
 
+        if (hasDelay == "false") {
+            iataList[iata] = {
+                "sample": sampleName
+            };
+        }
 
-        /* data.get({
-             url: 'airport/status/' + iata
-             , qs: {
-                 format: 'application/json'
-             }
-         }).then(function (resp) {
-             //push data to refocus
-             
-             /*refocus.post({
-                 url: 'v1/samples'
-                 , body: {
-                     "name": "Salesforce.Demos.California.SanDiego.SAN|AIRPORTDELAY"
-                     , "value": "false"
-                 }
-             });*/
+    }
+}).then(function (resp) {
+    for (iata in iataList) {
+        updateMessage(iata);
     }
 }).catch(function (err) {
     console.error(err);
