@@ -19,6 +19,7 @@ function updateMessage(iata) {
             url: 'v1/samples/upsert'
             , body: {
                 "name": iataList[resp.IATA].sample
+                 , "messageCode": resp.status.reason.substr(0,5)
                 , "messageBody": resp.status.reason + " // " + resp.status.type
             }
         });

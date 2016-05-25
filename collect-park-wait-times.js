@@ -14,7 +14,7 @@ MagicKingdom.GetWaitTimes(function (err, data) {
 
     for (index in data) {
         var rideAbsolutePath = "Salesforce.Demos.DisneyLand";
-        var rideName = data[index].name.replace(/[^a-zA-Z]/g, '');
+        var rideName = data[index].name.replace(/[^a-zA-Z]/g, '').substr(0,20);
 
         var rideSubject = {
             isPublished: true
@@ -25,8 +25,10 @@ MagicKingdom.GetWaitTimes(function (err, data) {
         refocus.post({
             url: 'v1/subjects'
             , body: rideSubject
+        }).catch(function(err) {
+            console.error('There was an error inserting subjects: ', err);
         });
-
+        
         //if there is a delay then get the details
         var waitTime = data[index].waitTime;
         var rideSubjectPath = rideAbsolutePath + "." + rideName;
@@ -34,12 +36,13 @@ MagicKingdom.GetWaitTimes(function (err, data) {
         var sampleUpsertBody = {
             "name": rideSubjectPath + "|RIDEWAITTIME"
             , "value": waitTime.toString()
+            , "messageCode": waitTime.toString()
         };
         refocus.post({
             url: 'v1/samples/upsert'
             , body: sampleUpsertBody
         }).catch(function(resp){
-            console.log("Error upserting...");
+            console.log("Error upserting sample...");
             console.log(sampleUpsertBody);
         });
     }
