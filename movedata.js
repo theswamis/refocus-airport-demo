@@ -3,7 +3,7 @@ var data = require('promised-rest-client')({
 });
 
 var refocus = require('promised-rest-client')({
-    url: 'http://refocus.internal.salesforce.com/'
+    url: 'http://refocus-public.herokuapp.com/'
 });
 
 var iataList = {};
@@ -19,7 +19,7 @@ function updateMessage(iata) {
             url: 'v1/samples/upsert'
             , body: {
                 "name": iataList[resp.IATA].sample
-                 , "messageCode": resp.status.reason.substr(0,5)
+                , "messageCode": resp.status.reason.substr(0, 5)
                 , "messageBody": resp.status.reason + " // " + resp.status.type
             }
         });
@@ -37,7 +37,7 @@ data.get({
 }).then(function (resp) {
     for (i = 0; i < resp.length; i++) {
         var state = resp[i].STATE.replace(/\s/g, '');
-        var stateAbsolutePath = "Salesforce.Demos.Airports";
+        var stateAbsolutePath = "Airports";
         var stateSubject = {
             isPublished: true
             , name: state
@@ -62,22 +62,29 @@ data.get({
             , parentAbsolutePath: airportAbsolutePath
         };
 
-        /*	
+        /*
         refocus.post({
             url: 'v1/subjects'
             , body: stateSubject
+        }).catch(function (resp) {
+            console.log("Error: " + resp.message);
         });
 
         refocus.post({
             url: 'v1/subjects'
             , body: citySubject
+        }).catch(function (resp) {
+            console.log("Error: " + resp.message);
         });
 
         refocus.post({
             url: 'v1/subjects'
             , body: airportSubject
+        }).catch(function (resp) {
+            console.log("Error: " + resp.message);
         });
-	*/
+        */
+
 
         //if there is a delay then get the details
         var hasDelay = "true";
