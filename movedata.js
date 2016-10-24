@@ -3,7 +3,7 @@ var data = require('promised-rest-client')({
 });
 
 var refocus = require('promised-rest-client')({
-    url: 'http://refocus-public.herokuapp.com/'
+    url: 'http://refocus.internal.salesforce.com/'
 });
 
 var iataList = {};
@@ -22,12 +22,17 @@ function updateMessage(iata) {
                 , "messageCode": resp.status.reason.substr(0, 5)
                 , "messageBody": resp.status.reason + " // " + resp.status.type
             }
-        });
+        }).catch(function(resp){
+		console.log("Error sending sample.");
+	});
+	
     }).catch(function (resp) {
         console.log("Error: " + resp.message);
     });
 }
 
+
+var sampleUpsertArray = [];
 
 data.get({
     url: 'airport/list'
@@ -35,9 +40,15 @@ data.get({
         format: 'application/json'
     }
 }).then(function (resp) {
-    for (i = 0; i < resp.length; i++) {
+	for (i=0;i<resp.length;i++){
+        var rootAbsolutePath = "Demos.Airports";
+        var rootSubject = {
+            isPublished: true
+            , name: rootAbsolutePath
+        };
+
         var state = resp[i].STATE.replace(/\s/g, '');
-        var stateAbsolutePath = "Airports";
+        var stateAbsolutePath = rootAbsolutePath;
         var stateSubject = {
             isPublished: true
             , name: state
@@ -62,7 +73,15 @@ data.get({
             , parentAbsolutePath: airportAbsolutePath
         };
 
-        /*
+	var CREATE_SUBJECTS = false;
+	if (CREATE_SUBJECTS) {
+        refocus.post({
+            url: 'v1/subjects'
+            , body: rootSubject
+        }).catch(function (resp) {
+            console.log("Error: " + resp.message);
+        });
+
         refocus.post({
             url: 'v1/subjects'
             , body: stateSubject
@@ -83,8 +102,8 @@ data.get({
         }).catch(function (resp) {
             console.log("Error: " + resp.message);
         });
-        */
-
+	}
+	
 
         //if there is a delay then get the details
         var hasDelay = "true";
@@ -103,19 +122,28 @@ data.get({
             , "relatedLinks": links
             , "value": hasDelay
         };
-        refocus.post({
-            url: 'v1/samples/upsert'
-            , body: sampleUpsertBody
-        });
+
+	sampleUpsertArray.push(sampleUpsertBody);
 
         if (hasDelay == "false") {
             iataList[iata] = {
                 "sample": sampleName
             };
         }
-
-    }
+}
 }).then(function (resp) {
+        console.log(sampleUpsertArray.length);
+
+       var queryStart = new Date();
+        refocus.post({
+            url: 'v1/samples/upsert/bulk'
+            , body: sampleUpsertArray,
+        }).catch(function(resp) {
+                console.log(resp);
+        }).then(function(resp) {
+                var queryEnd = new Date() - queryStart;
+                console.log('end query - ' + queryEnd);
+        });
     for (iata in iataList) {
         updateMessage(iata);
     }
